@@ -1,30 +1,26 @@
-// Import the required modules from Google APIs and Node.js
-const { google } = require('googleapis');
-const path = require('path');
 const fs = require('fs');
 
-// Define the path to the service account credentials file
-const credentialsPath = path.join(__dirname, '../../credentials.json');
+// Retrieve Base64-encoded credentials from the environment
+const encodedCredentials = process.env.GOOGLE_CREDENTIALS;
 
-// Read and parse the service account credentials from the JSON file
-const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+if (!encodedCredentials) {
+  throw new Error('GOOGLE_CREDENTIALS environment variable is missing');
+}
 
-// Configure a JWT (JSON Web Token) auth client using the service account credentials
-const jwtClient = new google.auth.JWT(
-    credentials.client_email, // Service account email
-    null,                     // Path to the private key file (null since we're using the key directly)
-    credentials.private_key,  // Service account private key
-    ['https://www.googleapis.com/auth/drive'] // Scope specifying access to Google Drive
-);
+try {
+  // Decode the Base64 string
+  const decodedCredentials = Buffer.from(encodedCredentials, 'base64').toString('utf8');
 
-// Authorize the JWT client with Google APIs
-jwtClient.authorize((err, tokens) => {
-    if (err) {
-        console.error('Error authorizing JWT client:', err);
-        return;
-    }
-    console.log('Successfully authenticated with Google APIs');
-});
+  // Validate the JSON structure
+  const credentialsJson = JSON.parse(decodedCredentials);
 
-// Export the authorized JWT client for use in other modules
-module.exports = jwtClient;
+  // Write the credentials to a file
+  const credentialsPath = './credentials.js';
+  if (!fs.existsSync(credentialsPath)) {
+    fs.writeFileSync(credentialsPath, JSON.stringify(credentialsJson, null, 2));
+    console.log('credentials.js created successfully.');
+  }
+} catch (error) {
+  console.error('Failed to decode and parse GOOGLE_CREDENTIALS:', error.message);
+  throw error;
+}
