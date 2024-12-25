@@ -4,7 +4,10 @@ const app = express(); // Create an Express application instance
 const { processSheetData } = require('./controllers/uploadController'); // Import the function to process Sheet1 data
 
 const CHECK_INTERVAL = 5 * 60 * 1000; // Set the interval to check for updates every 30 seconds
-
+// Health check route
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'OK', message: 'Service is running' });
+});
 // Set up a periodic check for Google Sheets changes
 setInterval(async () => {
     try {

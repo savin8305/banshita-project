@@ -1,19 +1,14 @@
-// Import the required modules from Google APIs and Node.js
+// Import the required modules from Google APIs
 const { google } = require('googleapis');
-const path = require('path');
-const fs = require('fs');
 
-// Define the path to the service account credentials file
-const credentialsPath = path.join(__dirname, '../../credentials.json');
-
-// Read and parse the service account credentials from the JSON file
-const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+// Parse the GOOGLE_SERVICE_ACCOUNT_KEY environment variable
+const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
 
 // Configure a JWT (JSON Web Token) auth client using the service account credentials
 const jwtClient = new google.auth.JWT(
-    credentials.client_email, // Service account email
-    null,                     // Path to the private key file (null since we're using the key directly)
-    credentials.private_key,  // Service account private key
+    credentials.client_email,
+    null,
+    credentials.private_key,
     ['https://www.googleapis.com/auth/drive'] // Scope specifying access to Google Drive
 );
 
@@ -28,3 +23,6 @@ jwtClient.authorize((err, tokens) => {
 
 // Export the authorized JWT client for use in other modules
 module.exports = jwtClient;
+
+// Log the first few characters of the private key to verify it's loaded correctly
+console.log('First 50 characters of private key:', credentials.private_key.substring(0, 50));
